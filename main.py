@@ -2,14 +2,14 @@ import requests
 import json
 from pymongo import MongoClient
 
-URI_MOVIES = 'https://api.themoviedb.org/3/tv/popular?api_key=5c72a972a13c78f3b464483f0fe30a39&language=en-US&page='
-URI_GAMES = "https://api.rawg.io/api/games?key=bee48918ad63447fb75d085b1f624f6c&page_size=40&page="
+URI_MOVIES = 'https://api.themoviedb.org/3/tv/popular?api_key=<apikey>&language=en-US&page='
+URI_GAMES = "https://api.rawg.io/api/games?key=<apikey>c&page_size=40&page="
 
-mongo_url = "mongodb+srv://Axenos:G3E9yqondrevFHeJ@mazanoapi.tfz45ds.mongodb.net/?retryWrites=true&w=majority"
+mongo_url = "url to db"
 
 client = MongoClient(mongo_url)
 
-db = client['Mazano-API']
+db = client['db name']
 
 
 def parse_films(database, kind):
@@ -71,10 +71,10 @@ if __name__ == "__main__":
                           "\n     - 3 to load games \n1"))
 
     if operation == 1:
-        parse_films(db, "Films-API")
+        parse_films(db, "Films collection")
 
     if operation == 2:
-        parse_films(db, "Series-API")
+        parse_films(db, "Series collection")
 
     if operation == 3:
         parse_games(db)
