@@ -2,7 +2,8 @@ import requests
 import json
 from pymongo import MongoClient
 
-URI_MOVIES = 'https://api.themoviedb.org/3/tv/popular?api_key=<apikey>&language=en-US&page='
+URI_MOVIES = 'https://api.themoviedb.org/3/movie/popular?api_key=<apikey>&language=en-US&page='
+URI_SERIES = 'https://api.themoviedb.org/3/tv/popular?api_key=<apikey>&language=en-US&page='
 URI_GAMES = "https://api.rawg.io/api/games?key=<apikey>c&page_size=40&page="
 
 mongo_url = "url to db"
@@ -13,13 +14,18 @@ db = client['db name']
 
 
 def parse_films(database, kind):
-    films = db[kind]
+    films = database[kind]
 
     for i in range(500):
         page = i + 1
 
         res = requests.get(URI_MOVIES + str(page))
         results = json.loads(res.text)['results']
+
+        for movie in results:
+            movie.update({
+                "page": page
+            })
 
         films.insert_many(results)
         print("Page " + str(page) + " loaded" + "                 ( " + str((page/500)*100) + "% )")
@@ -28,8 +34,7 @@ def parse_films(database, kind):
 
 
 def parse_games(database):
-    total_games = json.loads(requests.get(URI_GAMES + "1").text)['count']
-    total_pages = int(total_games / 40) + 1
+    total_pages = 10000
 
     games_db = database["Games-API"]
 
@@ -40,14 +45,20 @@ def parse_games(database):
 
         for game in games:
             genres = []
+            platforms = []
 
             for genre in game['genres']:
                 genres.append(genre['name'])
 
+            for platform in game['parent_platforms']:
+                platforms.append(platform['platform']['name'])
+
             game_model = {
-                "game_id": game['id'],
+                "page": str(page + 1),
+                "id": game['id'],
                 "background_image": game['background_image'],
                 "genres": genres,
+                "platforms": platforms,
                 "language": "eng",
                 "title": game['name'],
                 "rating": game['rating']
@@ -73,8 +84,11 @@ if __name__ == "__main__":
     if operation == 1:
         parse_films(db, "Films collection")
 
-    if operation == 2:
+    elif operation == 2:
         parse_films(db, "Series collection")
 
-    if operation == 3:
+    elif operation == 3:
         parse_games(db)
+
+    else:
+        print("No kind operation exists")
